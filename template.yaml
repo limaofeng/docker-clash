@@ -1,0 +1,57 @@
+# 日志级别
+log-level: info
+
+external-controller: '0.0.0.0:19090'
+secret: 'grw3eqw0ahv6wkz'
+
+mixed-port: 7890
+
+external-ui: dashboard/metacubexd
+
+proxy-providers:
+  fuqiang:
+    type: http
+    url: ${PROXY_PROVIDER_URL}
+    interval: 3600
+    path: ./providers/fuqiang.yaml
+    health-check:
+      enable: true
+      interval: 600
+      url: http://www.gstatic.com/generate_204
+
+# 代理组配置
+proxy-groups:
+  - name: PROXY
+    type: select
+    use:
+      - fuqiang
+
+rule-providers:
+  FuQiang:
+    type: file
+    behavior: classical
+    path: ./ruleset/fuqiang.yaml
+    interval: 3600
+
+# 规则
+rules:
+  - RULE-SET,FuQiang,PROXY
+  ${RULES}
+  - GEOIP,CN,DIRECT
+  - MATCH,GLOBAL
+
+# DNS 配置
+dns:
+  enable: false
+  ipv6: false
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip # 或使用 redir-host
+  nameserver:
+    - "223.5.5.5"
+  fallback:
+    - "1.1.1.1"
+    - "tls://dns.google"
+
+# 其他配置
+experimental:
+  ignore-resolve-fail: true
